@@ -8,15 +8,10 @@ publish = false
 [dependencies]
 chrono = "0.4.38"
 log = { workspace = true }
-reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
 tauri = { workspace = true }
 thiserror = { workspace = true }
 ts-rs = { workspace = true }
-yaak-common = { workspace = true }
-yaak-models = { workspace = true }
-yaak-api = { workspace = true }
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }

@@ -1,13 +1,11 @@
 import { useSearch } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { type } from "@tauri-apps/plugin-os";
-import { useLicense } from "@yaakapp-internal/license";
 import { pluginsAtom, settingsAtom } from "@yaakapp-internal/models";
 import { HeaderSize, HStack, Icon } from "@yaakapp-internal/ui";
 import classNames from "classnames";
 import { useAtomValue } from "jotai";
 import { useKeyPressEvent } from "react-use";
-import { appInfo } from "../../lib/appInfo";
 import { capitalize } from "../../lib/capitalize";
 import { CountBadge } from "../core/CountBadge";
 import { TabContent, type TabItem, Tabs } from "../core/Tabs/Tabs";
@@ -50,7 +48,6 @@ export default function Settings({ hide }: Props) {
   const [mainTab, subtab] = tabFromQuery?.split(":") ?? [];
   const settings = useAtomValue(settingsAtom);
   const plugins = useAtomValue(pluginsAtom);
-  const licenseCheck = useLicense();
 
   // Close settings window on escape
   // TODO: Could this be put in a better place? Eg. in Rust key listener when creating the window
@@ -99,7 +96,6 @@ export default function Settings({ hide }: Props) {
           (value): TabItem => ({
             value,
             label: capitalize(value),
-            hidden: !appInfo.featureLicense && value === TAB_LICENSE,
             leftSlot:
               value === TAB_GENERAL ? (
                 <Icon icon="settings" className="text-secondary" />
@@ -125,8 +121,6 @@ export default function Settings({ hide }: Props) {
                 <CountBadge count={plugins.filter((p) => p.source !== "bundled").length} />
               ) : value === TAB_PROXY && settings.proxy?.type === "enabled" ? (
                 <CountBadge count />
-              ) : value === TAB_LICENSE && licenseCheck.check.data?.status === "personal_use" ? (
-                <CountBadge count color="notice" />
               ) : null,
           }),
         )}

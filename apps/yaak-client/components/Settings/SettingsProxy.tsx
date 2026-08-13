@@ -2,7 +2,6 @@ import { patchModel, settingsAtom } from "@yaakapp-internal/models";
 import type { ProxySetting } from "@yaakapp-internal/models";
 import { Heading, InlineCode, VStack } from "@yaakapp-internal/ui";
 import { useAtomValue } from "jotai";
-import { CommercialUseBanner } from "../CommercialUseBanner";
 import {
   SettingRowBoolean,
   SettingRowSelect,
@@ -34,7 +33,6 @@ export function SettingsProxy() {
           traffic, or routing through specific infrastructure.
         </p>
       </div>
-      <CommercialUseBanner source="proxy-settings" title="Using a proxy for work?" />
       <SettingsList className="space-y-8">
         <SettingsSection title="Proxy">
           <SettingRowSelect

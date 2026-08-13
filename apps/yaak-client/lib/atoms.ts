@@ -1,5 +1,4 @@
 import deepEqual from "@gilbarbara/deep-equal";
-import type { UpdateInfo } from "@yaakapp-internal/tauri-client";
 import type { Atom } from "jotai";
 import { atom } from "jotai";
 import { selectAtom } from "jotai/utils";
@@ -18,5 +17,3 @@ export const workspaceLayoutAtom = atomWithKVStorage<SplitLayoutLayout>(
   "workspace_layout",
   "horizontal",
 );
-
-export const updateAvailableAtom = atom<Omit<UpdateInfo, "replyEventId"> | null>(null);

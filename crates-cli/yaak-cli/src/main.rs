@@ -5,7 +5,6 @@ mod plugin_events;
 mod ui;
 mod utils;
 mod version;
-mod version_check;
 
 use clap::Parser;
 use cli::{Cli, Commands, PluginCommands, RequestCommands};
@@ -32,8 +31,6 @@ async fn main() {
     let app_id = if cfg!(debug_assertions) { "app.yaak.desktop.dev" } else { "app.yaak.desktop" };
 
     let data_dir = data_dir.unwrap_or_else(|| resolve_data_dir(app_id));
-
-    version_check::maybe_check_for_updates().await;
 
     let exit_code = match command {
         Commands::Auth(args) => commands::auth::run(args).await,

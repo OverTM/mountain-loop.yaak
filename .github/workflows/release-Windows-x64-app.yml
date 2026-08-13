@@ -66,7 +66,7 @@ jobs:
 
       # 核心构建：参考官方 release-app.yml 的 Windows x64 配置
       # --config ./tauri.release.conf.json          使用发布配置
-      # --config build.features                     启用 updater + license + wry 三个特性（与官方一致）
+      # --config build.features                     启用 wry 特性
       # --bundles nsis                              只生成 NSIS 安装包，不生成 MSI，减少产物
       # --config bundle.windows.nsis.installMode    perMachine 全机器安装（装到 Program Files）
       # --no-sign                                   跳过代码签名，无需证书
@@ -77,7 +77,7 @@ jobs:
           cd crates-tauri/yaak-app-client
           npx tauri build `
             --config ./tauri.release.conf.json `
-            --config '{"build":{"features":["updater","license","wry"]}}' `
+            --config '{"build":{"features":["wry"]}}' `
             --bundles nsis `
             --config '{"bundle":{"windows":{"nsis":{"installMode":"perMachine"}}}}' `
             --no-sign

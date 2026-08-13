@@ -1,19 +1,14 @@
 import { type } from "@tauri-apps/plugin-os";
 import { useFonts } from "@yaakapp-internal/fonts";
-import { useLicense } from "@yaakapp-internal/license";
 import type { EditorKeymap, Settings } from "@yaakapp-internal/models";
 import { patchModel, settingsAtom } from "@yaakapp-internal/models";
 import { clamp, Heading, VStack } from "@yaakapp-internal/ui";
 import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { activeWorkspaceAtom } from "../../hooks/useActiveWorkspace";
-import { showConfirm } from "../../lib/confirm";
-import { pricingUrl } from "../../lib/pricingUrl";
 import { invokeCmd } from "../../lib/tauri";
-import { CargoFeature } from "../CargoFeature";
 import { Button } from "../core/Button";
 import { Checkbox } from "../core/Checkbox";
-import { Link } from "../core/Link";
 import {
   ModelSettingRowBoolean,
   ModelSettingRowSelect,
@@ -185,10 +180,6 @@ export function SettingsInterface() {
             />
           )}
         </SettingsSection>
-
-        <CargoFeature feature="license">
-          <LicenseSettings settings={settings} />
-        </CargoFeature>
       </SettingsList>
     </VStack>
   );
@@ -223,52 +214,5 @@ function NativeTitlebarSetting({ settings }: { settings: Settings }) {
         </Button>
       )}
     </SettingRow>
-  );
-}
-
-function LicenseSettings({ settings }: { settings: Settings }) {
-  const license = useLicense();
-  if (license.check.data?.status !== "personal_use") {
-    return null;
-  }
-
-  return (
-    <SettingsSection title="License">
-      <SettingRowBoolean
-        checked={settings.hideLicenseBadge}
-        title="Hide personal use badge"
-        description="Hide the personal-use badge from the interface."
-        onChange={async (hideLicenseBadge) => {
-          if (hideLicenseBadge) {
-            const confirmed = await showConfirm({
-              id: "hide-license-badge",
-              title: "Confirm Personal Use",
-              confirmText: "Confirm",
-              description: (
-                <VStack space={3}>
-                  <p>Hey there 👋🏼</p>
-                  <p>
-                    Yaak is free for personal projects and learning.{" "}
-                    <strong>If you’re using Yaak at work, a license is required.</strong>
-                  </p>
-                  <p>
-                    Licenses help keep Yaak independent and sustainable.{" "}
-                    <Link href={pricingUrl("app.license.badge-hide-confirm")}>
-                      Purchase a License →
-                    </Link>
-                  </p>
-                </VStack>
-              ),
-              requireTyping: "Personal Use",
-              color: "info",
-            });
-            if (!confirmed) {
-              return;
-            }
-          }
-          await patchModel(settings, { hideLicenseBadge });
-        }}
-      />
-    </SettingsSection>
   );
 }

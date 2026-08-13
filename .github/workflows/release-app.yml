@@ -15,25 +15,25 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest" # for Arm-based Macs (M1 and above).
-            args: '--target aarch64-apple-darwin --config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
+            args: '--target aarch64-apple-darwin --config ./tauri.release.conf.json --config ''{"build":{"features":["wry"]}}'''
             yaak_arch: "arm64"
             os: "macos"
             runtime: "wry"
             targets: "aarch64-apple-darwin"
           - platform: "macos-latest" # for Intel-based Macs.
-            args: '--target x86_64-apple-darwin --config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
+            args: '--target x86_64-apple-darwin --config ./tauri.release.conf.json --config ''{"build":{"features":["wry"]}}'''
             yaak_arch: "x64"
             os: "macos"
             runtime: "wry"
             targets: "x86_64-apple-darwin"
           - platform: "ubuntu-22.04"
-            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
+            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["wry"]}}'''
             yaak_arch: "x64"
             os: "ubuntu"
             runtime: "wry"
             targets: ""
           - platform: "ubuntu-22.04-arm"
-            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
+            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["wry"]}}'''
             yaak_arch: "arm64"
             os: "ubuntu"
             runtime: "wry"
@@ -42,7 +42,7 @@ jobs:
             args: >-
               --bundles deb
               --config ./tauri.release.conf.json
-              --config '{"productName":"yaak-cef","mainBinaryName":"yaak-cef","identifier":"app.yaak.desktop.cef","build":{"features":["license","cef"]},"bundle":{"createUpdaterArtifacts":false}}'
+              --config '{"productName":"yaak-cef","mainBinaryName":"yaak-cef","identifier":"app.yaak.desktop.cef","build":{"features":["cef"]},"bundle":{"createUpdaterArtifacts":false}}'
             yaak_arch: "x64"
             os: "ubuntu"
             runtime: "cef"
@@ -51,20 +51,20 @@ jobs:
             args: >-
               --bundles deb
               --config ./tauri.release.conf.json
-              --config '{"productName":"yaak-cef","mainBinaryName":"yaak-cef","identifier":"app.yaak.desktop.cef","build":{"features":["license","cef"]},"bundle":{"createUpdaterArtifacts":false}}'
+              --config '{"productName":"yaak-cef","mainBinaryName":"yaak-cef","identifier":"app.yaak.desktop.cef","build":{"features":["cef"]},"bundle":{"createUpdaterArtifacts":false}}'
             yaak_arch: "arm64"
             os: "ubuntu"
             runtime: "cef"
             targets: ""
           - platform: "windows-latest"
-            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
+            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["wry"]}}'''
             yaak_arch: "x64"
             os: "windows"
             runtime: "wry"
             targets: ""
           # Windows ARM64
           - platform: "windows-latest"
-            args: '--target aarch64-pc-windows-msvc --config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
+            args: '--target aarch64-pc-windows-msvc --config ./tauri.release.conf.json --config ''{"build":{"features":["wry"]}}'''
             yaak_arch: "arm64"
             os: "windows"
             runtime: "wry"
@@ -220,15 +220,10 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         run: |
-          Get-ChildItem -Recurse -Path target -File -Filter "*.exe.sig" | Remove-Item -Force
           Push-Location crates-tauri/yaak-app-client
-          npx tauri bundle ${{ matrix.args }} --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":true,"windows":{"nsis":{"installMode":"perMachine"}}}}'
+          npx tauri bundle ${{ matrix.args }} --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":false,"windows":{"nsis":{"installMode":"perMachine"}}}}'
           Pop-Location
           $setup = Get-ChildItem -Recurse -Path target -Filter "*setup*.exe" | Select-Object -First 1
-          $setupSig = "$($setup.FullName).sig"
           $dest = $setup.FullName -replace '-setup\.exe$', '-setup-machine.exe'
-          $destSig = "$dest.sig"
           Copy-Item $setup.FullName $dest
-          Copy-Item $setupSig $destSig
           gh release upload "${{ github.ref_name }}" "$dest" --clobber
-          gh release upload "${{ github.ref_name }}" "$destSig" --clobber

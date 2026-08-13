@@ -1,21 +1,13 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { patchModel, settingsAtom } from "@yaakapp-internal/models";
+import { settingsAtom } from "@yaakapp-internal/models";
 import { Heading, VStack } from "@yaakapp-internal/ui";
 import { useAtomValue } from "jotai";
-import { useCheckForUpdates } from "../../hooks/useCheckForUpdates";
 import { appInfo } from "../../lib/appInfo";
 import { revealInFinderText } from "../../lib/reveal";
-import { CargoFeature } from "../CargoFeature";
-import { CommercialUseBanner } from "../CommercialUseBanner";
 import { DismissibleBanner } from "../core/DismissibleBanner";
-import { IconButton } from "../core/IconButton";
 import {
-  ModelSettingRowBoolean,
-  ModelSettingSelectControl,
   SettingValue,
   SettingRow,
-  SettingRowBoolean,
-  SettingRowSelect,
   SettingsList,
   SettingsSection,
 } from "../core/SettingRow";
@@ -24,7 +16,6 @@ const WORKSPACE_SETTINGS_MOVED_AT = "2026-06-30";
 
 export function SettingsGeneral() {
   const settings = useAtomValue(settingsAtom);
-  const checkForUpdates = useCheckForUpdates();
 
   if (settings == null) {
     return null;
@@ -38,91 +29,10 @@ export function SettingsGeneral() {
       <div>
         <Heading>General</Heading>
         <p className="text-text-subtle">
-          Configure general settings for update behavior and more.
+          Configure general settings for the application.
         </p>
       </div>
-      <div className="mt-3 mb-5">
-        <CommercialUseBanner source="settings-general" title="Using Yaak for work?" />
-      </div>
       <SettingsList className="space-y-8">
-        <CargoFeature feature="updater">
-          <SettingsSection title="Updates">
-            <SettingRow
-              title="Update Channel"
-              description="Choose whether Yaak should use stable releases or beta releases."
-            >
-              <div className="grid grid-cols-[12rem_auto] gap-1">
-                <ModelSettingSelectControl
-                  model={settings}
-                  modelKey="updateChannel"
-                  label="Update Channel"
-                  selectClassName="w-full!"
-                  options={[
-                    { label: "Stable", value: "stable" },
-                    { label: "Beta", value: "beta" },
-                  ]}
-                />
-                <IconButton
-                  variant="border"
-                  size="sm"
-                  title="Check for updates"
-                  icon="refresh"
-                  spin={checkForUpdates.isPending}
-                  onClick={() => checkForUpdates.mutateAsync()}
-                />
-              </div>
-            </SettingRow>
-
-            <SettingRowSelect
-              title="Update Behavior"
-              description="Choose whether updates are installed automatically or manually."
-              name="autoupdate"
-              value={settings.autoupdate ? "auto" : "manual"}
-              onChange={(v) =>
-                patchModel(settings, { autoupdate: v === "auto" })
-              }
-              options={[
-                { label: "Automatic", value: "auto" },
-                { label: "Manual", value: "manual" },
-              ]}
-            />
-
-            <ModelSettingRowBoolean
-              model={settings}
-              modelKey="autoDownloadUpdates"
-              title="Automatically download updates"
-              description="Download Yaak updates in the background so they are ready to install."
-              disabled={!settings.autoupdate}
-            />
-
-            <ModelSettingRowBoolean
-              model={settings}
-              modelKey="checkNotifications"
-              title="Check for notifications"
-              description="Periodically ping Yaak servers to check for relevant notifications."
-            />
-
-            <SettingRowBoolean
-              title="Send anonymous usage statistics"
-              description="Yaak is local-first and does not collect analytics or usage data."
-              disabled
-              checked={false}
-              onChange={() => {}}
-            />
-          </SettingsSection>
-        </CargoFeature>
-
-        <CargoFeature feature="license">
-          <SettingsSection title="Feedback">
-            <SettingRowBoolean
-              title="Prompt for feedback"
-              description="Show rare one-time prompts asking how new features are working."
-              checked={settings.promptFeedback}
-              onChange={(promptFeedback) => patchModel(settings, { promptFeedback })}
-            />
-          </SettingsSection>
-        </CargoFeature>
-
         {showWorkspaceSettingsMovedBanner && (
           <DismissibleBanner
             id="workspace-settings-moved-2026-06-30"

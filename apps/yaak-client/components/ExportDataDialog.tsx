@@ -8,7 +8,6 @@ import slugify from "slugify";
 import { activeWorkspaceAtom } from "../hooks/useActiveWorkspace";
 import { pluralizeCount } from "../lib/pluralize";
 import { invokeCmd } from "../lib/tauri";
-import { CommercialUseBanner } from "./CommercialUseBanner";
 import { Button } from "./core/Button";
 import { Checkbox } from "./core/Checkbox";
 import { DetailsBanner } from "./core/DetailsBanner";
@@ -88,8 +87,6 @@ function ExportDataDialogContent({
   return (
     <div className="h-full w-full grid grid-rows-[minmax(0,1fr)_auto] overflow-hidden rounded-b-lg">
       <VStack space={3} className="overflow-auto px-5 pb-6">
-        <CommercialUseBanner source="data-export" title="Exporting work data?" />
-
         <table className="w-full mb-auto min-w-full max-w-full divide-y divide-surface-highlight">
           <thead>
             <tr>

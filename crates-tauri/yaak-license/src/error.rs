@@ -3,23 +3,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Reqwest error: {0}")]
-    APIError(#[from] reqwest::Error),
-
-    #[error("JSON error: {0}")]
-    JsonError(#[from] serde_json::Error),
-
-    #[error("{message}")]
-    ClientError { message: String, error: String },
-
-    #[error(transparent)]
-    ModelError(#[from] yaak_models::error::Error),
-
-    #[error(transparent)]
-    ApiError(#[from] yaak_api::Error),
-
-    #[error("Internal server error")]
-    ServerError,
+    #[error("Internal error: {0}")]
+    Internal(String),
 }
 
 impl Serialize for Error {

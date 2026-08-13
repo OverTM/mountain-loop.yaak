@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { appInfo } from "@yaakapp/yaak-client/lib/appInfo";
 import { useEffect } from "react";
 import { LicenseCheckStatus } from "./bindings/license";
 
@@ -33,16 +32,11 @@ export function useLicense() {
     };
   }, []);
 
-  const check = useQuery<LicenseCheckStatus | null, string>({
+  const check = useQuery<LicenseCheckStatus, string>({
     refetchInterval: 1000 * 60 * 60 * 12, // Refetch every 12 hours
     refetchOnWindowFocus: false,
     queryKey: CHECK_QUERY_KEY,
-    queryFn: async () => {
-      if (!appInfo.featureLicense) {
-        return null;
-      }
-      return invoke<LicenseCheckStatus>("plugin:yaak-license|check");
-    },
+    queryFn: () => invoke<LicenseCheckStatus>("plugin:yaak-license|check"),
   });
 
   return {

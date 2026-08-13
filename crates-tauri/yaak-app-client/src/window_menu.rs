@@ -35,24 +35,18 @@ pub fn app_menu<R: Runtime>(app_handle: &AppHandle<R>) -> tauri::Result<Menu<R>>
         window_menu.set_as_windows_menu_for_nsapp()?;
     }
 
+    #[cfg(not(target_os = "macos"))]
     let help_menu = Submenu::with_id_and_items(
         app_handle,
         HELP_SUBMENU_ID,
         "Help",
         true,
-        &[
-            #[cfg(not(target_os = "macos"))]
-            &PredefinedMenuItem::about(app_handle, None, Some(about_metadata.clone()))?,
-            #[cfg(target_os = "macos")]
-            &MenuItemBuilder::with_id("open_feedback".to_string(), "Give Feedback")
-                .build(app_handle)?,
-        ],
+        &[&PredefinedMenuItem::about(
+            app_handle,
+            None,
+            Some(about_metadata.clone()),
+        )?],
     )?;
-
-    #[cfg(target_os = "macos")]
-    {
-        help_menu.set_as_windows_menu_for_nsapp()?;
-    }
 
     let menu = Menu::with_items(
         app_handle,
@@ -138,6 +132,7 @@ pub fn app_menu<R: Runtime>(app_handle: &AppHandle<R>) -> tauri::Result<Menu<R>>
                 ],
             )?,
             &window_menu,
+            #[cfg(not(target_os = "macos"))]
             &help_menu,
             #[cfg(dev)]
             &Submenu::with_items(
