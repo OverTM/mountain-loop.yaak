@@ -77,9 +77,9 @@ jobs:
           cd crates-tauri/yaak-app-client
           npx tauri build `
             --config ./tauri.release.conf.json `
-            --config '{\"build\":{\"features\":[\"updater\",\"license\",\"wry\"]}}' `
+            --config '{"build":{"features":["updater","license","wry"]}}' `
             --bundles nsis `
-            --config '{\"bundle\":{\"windows\":{\"nsis\":{\"installMode\":\"perMachine\"}}}}' `
+            --config '{"bundle":{"windows":{"nsis":{"installMode":"perMachine"}}}}' `
             --no-sign
         env:
           YAAK_TARGET_ARCH: x64
