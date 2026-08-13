@@ -89,18 +89,13 @@ jobs:
         id: rename
         shell: pwsh
         run: |
-          # 先打印 target 下所有 exe，方便排查实际产物名
-          Write-Output "=== target 下所有 exe 文件 ==="
-          Get-ChildItem -Path "crates-tauri\yaak-app-client\target" -Recurse -File -Filter "*.exe" | ForEach-Object { Write-Output $_.FullName }
-
-          # 放宽匹配：任何文件名包含 setup 的 exe
-          $exe = Get-ChildItem -Path "crates-tauri\yaak-app-client\target" -Recurse -File | Where-Object { $_.Name -like "*setup*.exe" } | Select-Object -First 1
-
+          # 产物在仓库根目录的 target 下（Tauri 3.0 alpha 行为）
+          $exe = Get-ChildItem -Path "target" -Recurse -File | Where-Object { $_.Name -like "*setup*.exe" } | Select-Object -First 1
           if (-not $exe) {
             Write-Error "未找到任何 setup exe"
+            Get-ChildItem -Path "target" -Recurse -File -Filter "*.exe" | ForEach-Object { Write-Output $_.FullName }
             exit 1
           }
-
           Write-Output "找到文件: $($exe.FullName)"
           $dest = $exe.FullName -replace 'setup\.exe$', 'setup-machine.exe'
           Move-Item -Path $exe.FullName -Destination $dest -Force
