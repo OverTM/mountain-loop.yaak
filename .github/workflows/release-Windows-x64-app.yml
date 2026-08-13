@@ -1,0 +1,105 @@
+name: Build Windows x64 (Machine)
+
+# 仅手动触发
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号，如 2026.5.0（留空则用 commit short sha）"
+        required: false
+        default: ""
+
+# 最小权限：只需写 Release
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+
+      # 拉取源码
+      - uses: actions/checkout@v4
+
+      # 安装 Node.js 24 + Vite+ (vp) 工具链
+      # 不开启 cache，避免占用仓库 10GB cache 存储额度（Public 时间无限，不在乎编译快慢）
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "24"
+
+      # 安装 Rust stable（默认带 x86_64-pc-windows-msvc target）
+      - uses: dtolnay/rust-toolchain@stable
+
+      # 安装 protoc，bootstrap 阶段 plugin-runtime 编译需要
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 安装 npm 依赖
+      - run: vp install
+
+      # 关键步骤：编译所有 workspace + vendor Node.js 运行时和 protoc + 打包插件
+      # YAAK_TARGET_ARCH=x64 决定 vendor 脚本下载 x64 架构的 Node.js 二进制，必须设置
+      - name: Bootstrap
+        run: npm run bootstrap
+        env:
+          YAAK_TARGET_ARCH: x64
+
+      # 解析最终版本号：用户填了就用用户的，没填就用 commit 前 7 位 hash
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          if ("${{ inputs.version }}") {
+            $v = "${{ inputs.version }}"
+          } else {
+            $v = $env:GITHUB_SHA.Substring(0, 7)
+          }
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+
+      # 把版本号写入 tauri.conf.json / package.json 等文件，影响产物文件名
+      - name: Set version
+        if: ${{ inputs.version != '' }}
+        run: npm run replace-version
+        env:
+          YAAK_VERSION: ${{ inputs.version }}
+
+      # 核心构建：参考官方 release-app.yml 的 Windows x64 配置
+      # --config ./tauri.release.conf.json          使用发布配置
+      # --config build.features                     启用 updater + license + wry 三个特性（与官方一致）
+      # --bundles nsis                              只生成 NSIS 安装包，不生成 MSI，减少产物
+      # --config bundle.windows.nsis.installMode    perMachine 全机器安装（装到 Program Files）
+      # --no-sign                                   跳过代码签名，无需证书
+      # 与官方的区别：官方先 tauri build 出 perUser 包，再 tauri bundle 出 perMachine 包；
+      # 我们只需要 machine 包，直接一次 tauri build 带 perMachine 配置，省一次编译
+      - name: Build (perMachine, no sign)
+        run: |
+          cd crates-tauri/yaak-app-client
+          npx tauri build `
+            --config ./tauri.release.conf.json `
+            --config '{\"build\":{\"features\":[\"updater\",\"license\",\"wry\"]}}' `
+            --bundles nsis `
+            --config '{\"bundle\":{\"windows\":{\"nsis\":{\"installMode\":\"perMachine\"}}}}' `
+            --no-sign
+        env:
+          YAAK_TARGET_ARCH: x64
+
+      # 官方 CI 中产物默认叫 *_x64-setup.exe，这里重命名为 *_x64-setup-machine.exe，与官方 Release 命名一致
+      - name: Rename to -machine
+        id: rename
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Recurse -Path crates-tauri/yaak-app-client/target -Filter "*_x64-setup.exe" | Select-Object -First 1
+          $dest = $exe.FullName -replace '_x64-setup\.exe$', '_x64-setup-machine.exe'
+          Move-Item $exe.FullName $dest
+          echo "artifact=$dest" >> $env:GITHUB_OUTPUT
+
+      # 直接上传到 GitHub Release，不走 upload-artifact
+      # 存储优化关键点：Release assets 不计入免费账户 500MB artifact 存储配额，upload-artifact 会计
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Release ${{ steps.ver.outputs.version }}
+          files: ${{ steps.rename.outputs.artifact }}
+          fail_on_unmatched_files: true
