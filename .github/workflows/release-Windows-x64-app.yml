@@ -89,10 +89,23 @@ jobs:
         id: rename
         shell: pwsh
         run: |
-          $exe = Get-ChildItem -Recurse -Path crates-tauri/yaak-app-client/target -Filter "*_x64-setup.exe" | Select-Object -First 1
-          $dest = $exe.FullName -replace '_x64-setup\.exe$', '_x64-setup-machine.exe'
-          Move-Item $exe.FullName $dest
-          echo "artifact=$dest" >> $env:GITHUB_OUTPUT
+          # 先打印 target 下所有 exe，方便排查实际产物名
+          Write-Output "=== target 下所有 exe 文件 ==="
+          Get-ChildItem -Path "crates-tauri\yaak-app-client\target" -Recurse -File -Filter "*.exe" | ForEach-Object { Write-Output $_.FullName }
+
+          # 放宽匹配：任何文件名包含 setup 的 exe
+          $exe = Get-ChildItem -Path "crates-tauri\yaak-app-client\target" -Recurse -File | Where-Object { $_.Name -like "*setup*.exe" } | Select-Object -First 1
+
+          if (-not $exe) {
+            Write-Error "未找到任何 setup exe"
+            exit 1
+          }
+
+          Write-Output "找到文件: $($exe.FullName)"
+          $dest = $exe.FullName -replace 'setup\.exe$', 'setup-machine.exe'
+          Move-Item -Path $exe.FullName -Destination $dest -Force
+          Write-Output "重命名为: $dest"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "artifact=$dest"
 
       # 直接上传到 GitHub Release，不走 upload-artifact
       # 存储优化关键点：Release assets 不计入免费账户 500MB artifact 存储配额，upload-artifact 会计
